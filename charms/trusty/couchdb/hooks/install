@@ -1,0 +1,25 @@
+#!/bin/bash
+# Here do anything needed to install the service
+# i.e. apt-get install -y foo  or  bzr branch http://myserver/mycode /srv/webroot
+# Make sure this hook exits cleanly and is idempotent, common problems here are
+# failing to account for a debconf question on a dependency, or trying to pull
+# from github without installing git first.
+
+set -e 
+status-set maintenance "Fetching and installing required package for building CouchDB 2.0"
+apt-get install -y build-essential erlang-base \
+   erlang-dev erlang-manpages erlang-eunit erlang-nox \
+   libicu-dev libmozjs185-dev libcurl4-openssl-dev \
+   pkg-config nodejs npm
+
+juju-log "git clone https://git-wip-us.apache.org/repos/asf/couchdb.git"
+git clone https://git-wip-us.apache.org/repos/asf/couchdb.git  /tmp/couchdb
+juju-log "done cloning"
+juju-log "installing grunt-cli"
+npm install -g grunt-cli
+juju-log "done install grunt-cli"
+cd /tmp/couchdb
+juju-log "checkout developer-preview-2.0"
+git checkout developer-preview-2.0
+export HOME=/tmp;
+./configure
